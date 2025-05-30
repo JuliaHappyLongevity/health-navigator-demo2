@@ -1,0 +1,1651 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Health Navigator - Enhanced Energy & Metabolism Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #4a90a4 0%, #357a8b 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+            max-width: 500px;
+            width: 100%;
+            overflow: hidden;
+            position: relative;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .progress-bar {
+            height: 4px;
+            background: #f0f0f0;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4a90a4, #357a8b);
+            transition: width 0.6s ease;
+            width: 10%;
+        }
+
+        .stage {
+            padding: 30px;
+            display: none;
+            text-align: center;
+            flex: 1;
+            overflow-y: auto;
+            max-height: calc(90vh - 4px);
+        }
+
+        .stage.active {
+            display: block;
+        }
+
+        .health-navigator {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 15px;
+            background: linear-gradient(135deg, #4a90a4, #357a8b);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .stage h1 {
+            color: #2d3748;
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            line-height: 1.3;
+        }
+
+        .stage h2 {
+            color: #4a5568;
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .stage p {
+            color: #718096;
+            font-size: 14px;
+            line-height: 1.5;
+            margin-bottom: 20px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .input-group label {
+            display: block;
+            color: #4a5568;
+            font-weight: 600;
+            margin-bottom: 6px;
+            font-size: 14px;
+        }
+
+        .input-group input, .input-group textarea, .input-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .input-group input:focus, .input-group textarea:focus, .input-group select:focus {
+            outline: none;
+            border-color: #4a90a4;
+        }
+
+        .textarea-large {
+            height: 80px;
+            resize: vertical;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #4a90a4 0%, #357a8b 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+            margin: 8px;
+            display: inline-block;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: #4a90a4;
+            border: 2px solid #4a90a4;
+        }
+
+        .btn-secondary:hover {
+            background: #4a90a4;
+            color: white;
+        }
+
+        .btn-small {
+            padding: 8px 16px;
+            font-size: 12px;
+        }
+
+        .btn-group {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .path-selector {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .path-option {
+            padding: 20px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+
+        .path-option:hover {
+            border-color: #4a90a4;
+            background: #f7fafc;
+        }
+
+        .path-option.selected {
+            border-color: #4a90a4;
+            background: #e6f7ff;
+        }
+
+        .path-option h3 {
+            color: #2d3748;
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+
+        .path-option p {
+            font-size: 12px;
+            margin: 0;
+        }
+
+        .scale-group {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+            margin: 15px 0;
+        }
+
+        .scale-option {
+            text-align: center;
+        }
+
+        .scale-option input[type="radio"] {
+            display: none;
+        }
+
+        .scale-option label {
+            display: block;
+            padding: 8px 4px;
+            border: 2px solid #e2e8f0;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+            font-size: 10px;
+            line-height: 1.2;
+            min-height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .scale-option input[type="radio"]:checked + label {
+            background: #4a90a4;
+            color: white;
+            border-color: #4a90a4;
+        }
+
+        .checkbox-group {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+            margin: 15px 0;
+            text-align: left;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: flex-start;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: left;
+        }
+
+        .checkbox-item:hover {
+            border-color: #4a90a4;
+            background: #f8fafc;
+        }
+
+        .checkbox-item.selected {
+            border-color: #4a90a4;
+            background: #e6f7ff;
+        }
+
+        .checkbox-item input[type="checkbox"]:checked + span,
+        .checkbox-item input[type="radio"]:checked + span {
+            color: #4a90a4;
+            font-weight: 600;
+        }
+
+        .checkbox-item input[type="checkbox"],
+        .checkbox-item input[type="radio"] {
+            margin-right: 12px;
+            margin-top: 2px;
+            flex-shrink: 0;
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        .checkbox-item span {
+            font-size: 13px;
+            line-height: 1.4;
+            flex: 1;
+        }
+
+        /* Safety check styling */
+        .safety-check-item {
+            display: flex;
+            align-items: center;
+            padding: 8px;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            transition: all 0.3s;
+        }
+
+        .safety-check-item:hover {
+            border-color: #4a90a4;
+            background: #f8fafc;
+        }
+
+        .safety-check-item input[type="checkbox"] {
+            margin-right: 8px;
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        .safety-check-item span {
+            font-size: 13px;
+            flex: 1;
+        }
+
+        .behavioral-profile {
+            background: linear-gradient(135deg, #e6f7ff 0%, #f0f8ff 100%);
+            border: 2px solid #4a90a4;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: left;
+        }
+
+        .profile-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .profile-badge {
+            font-size: 24px;
+            margin-right: 10px;
+        }
+
+        .profile-title {
+            color: #2d3748;
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .profile-traits {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 10px 0;
+        }
+
+        .trait-badge {
+            background: #4a90a4;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .recommendation-card {
+            background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 15px 0;
+            text-align: left;
+        }
+
+        .recommendation-card h3 {
+            color: #2d3748;
+            font-size: 16px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+        }
+
+        .evidence-bar {
+            height: 6px;
+            background: #e2e8f0;
+            border-radius: 3px;
+            margin: 8px 0;
+            overflow: hidden;
+        }
+
+        .evidence-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #48bb78, #38a169);
+            width: 85%;
+            transition: width 0.5s ease;
+        }
+
+        .whatsapp-preview {
+            background: #25d366;
+            color: white;
+            border-radius: 12px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+
+        .whatsapp-preview h3 {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+            font-size: 14px;
+        }
+
+        .whatsapp-message {
+            background: rgba(255,255,255,0.15);
+            padding: 8px 12px;
+            border-radius: 8px;
+            margin: 8px 0;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
+        .safety-alert {
+            background: #fff5f5;
+            border: 2px solid #fed7d7;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 15px 0;
+            text-align: left;
+        }
+
+        .safety-alert h3 {
+            color: #e53e3e;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+        }
+
+        .safety-alert p {
+            color: #742a2a;
+            font-size: 13px;
+            margin-bottom: 8px;
+        }
+
+        .tiny-wins {
+            background: #f0fff4;
+            border: 2px solid #9ae6b4;
+            border-radius: 12px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+
+        .tiny-wins h4 {
+            color: #276749;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+        }
+
+        .phase-timeline {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+            margin: 15px 0;
+        }
+
+        .phase-item {
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 15px;
+            position: relative;
+        }
+
+        .phase-number {
+            position: absolute;
+            top: -10px;
+            left: 15px;
+            background: #4a90a4;
+            color: white;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .phase-item h4 {
+            color: #2d3748;
+            margin-bottom: 8px;
+            margin-top: 5px;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            color: #4a90a4;
+            margin: 20px 0;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #4a90a4;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin: 15px 0;
+        }
+
+        .metric-card {
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+        }
+
+        .metric-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: #4a90a4;
+            margin-bottom: 4px;
+        }
+
+        .metric-label {
+            font-size: 11px;
+            color: #718096;
+        }
+
+        /* Lab result input styling */
+        .lab-input-row {
+            display: flex;
+            align-items: center;
+            padding: 8px;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            transition: all 0.3s;
+        }
+
+        .lab-input-row:hover {
+            border-color: #4a90a4;
+            background: #f8fafc;
+        }
+
+        .lab-input-row input[type="checkbox"] {
+            margin-right: 8px;
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        .lab-input-row span {
+            flex: 1;
+            font-size: 13px;
+        }
+
+        .lab-input-row input[type="number"] {
+            width: 80px;
+            padding: 4px 8px;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                width: 95%;
+                margin: 5px;
+                max-height: 95vh;
+            }
+            
+            .stage {
+                padding: 20px;
+            }
+            
+            .stage h1 {
+                font-size: 20px;
+            }
+            
+            .path-selector {
+                grid-template-columns: 1fr;
+            }
+
+            .scale-group {
+                grid-template-columns: 1fr;
+                gap: 5px;
+            }
+
+            .scale-option label {
+                font-size: 12px;
+                padding: 10px 8px;
+            }
+
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .btn-group {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .btn-group .btn {
+                width: 100%;
+                margin: 4px 0;
+            }
+        }
+
+        .demo-notice {
+            background: #fef5e7;
+            border: 1px solid #f6ad55;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 20px;
+            font-size: 12px;
+            text-align: left;
+            color: #744210;
+        }
+
+        .demo-notice strong {
+            display: block;
+            margin-bottom: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+
+        <!-- Stage 1: Enhanced Landing -->
+        <div class="stage active" id="stage1">
+            <div class="health-navigator">💚</div>
+            <h1>Hello, I'm your Health Navigator</h1>
+            <p>I specialize in helping women overcome persistent fatigue and energy challenges through personalized, evidence-based approaches</p>
+            
+            <div class="demo-notice">
+                <strong>🚀 Enhanced Demo:</strong> This demonstrates our intelligent dual-path system, behavioral profiling, safety protocols, and personalized tiny-wins approach.
+            </div>
+            
+            <div class="input-group">
+                <label for="concern">What's your main energy or health concern right now?</label>
+                <textarea id="concern" class="textarea-large" placeholder="For example: 'I'm exhausted every day despite eating well and exercising. I've tried B vitamins, iron, sleep apps - nothing works and it's affecting my work...'"></textarea>
+            </div>
+            
+            <div class="input-group">
+                <label for="impact">How much does this affect your daily life?</label>
+                <div class="scale-group">
+                    <div class="scale-option">
+                        <input type="radio" id="impact1" name="impact" value="1">
+                        <label for="impact1">Barely noticeable</label>
+                    </div>
+                    <div class="scale-option">
+                        <input type="radio" id="impact2" name="impact" value="2">
+                        <label for="impact2">Mild impact</label>
+                    </div>
+                    <div class="scale-option">
+                        <input type="radio" id="impact3" name="impact" value="3">
+                        <label for="impact3">Moderate impact</label>
+                    </div>
+                    <div class="scale-option">
+                        <input type="radio" id="impact4" name="impact" value="4">
+                        <label for="impact4">Quite challenging</label>
+                    </div>
+                    <div class="scale-option">
+                        <input type="radio" id="impact5" name="impact" value="5">
+                        <label for="impact5">Very challenging</label>
+                    </div>
+                </div>
+            </div>
+            
+            <button class="btn" onclick="nextStage()">Start My Personalized Journey</button>
+        </div>
+
+        <!-- Stage 2: Enhanced Path Selection -->
+        <div class="stage" id="stage2">
+            <div class="health-navigator">🔍</div>
+            <h1>Choose Your Journey</h1>
+            <p>I can create a personalized protocol using different approaches - both are equally effective!</p>
+            
+            <div class="path-selector">
+                <div class="path-option" onclick="selectPath('data')" id="dataPath">
+                    <h3>📊 Data-Driven Path</h3>
+                    <p>I have lab results, track my health metrics, or love detailed analysis</p>
+                </div>
+                <div class="path-option" onclick="selectPath('wisdom')" id="wisdomPath">
+                    <h3>🧠 Body Wisdom Path</h3>
+                    <p>I know my body well and prefer to start with how I feel</p>
+                </div>
+            </div>
+            
+            <div id="pathDescription"></div>
+            
+            <button class="btn" id="continueBtn" onclick="nextStage()" style="display: none;">Continue with Selected Path</button>
+        </div>
+
+        <!-- Stage 3: Privacy & Safety -->
+        <div class="stage" id="stage3">
+            <div class="health-navigator">🔒</div>
+            <h1>Your Data, Your Control</h1>
+            <p>Here's exactly how we handle your information and ensure your safety:</p>
+            
+            <div class="recommendation-card">
+                <h3>🛡️ Privacy Protection</h3>
+                <p><strong>✓</strong> All processing on EU servers</p>
+                <p><strong>✓</strong> GDPR compliant by design</p>
+                <p><strong>✓</strong> Images deleted within 72 hours</p>
+                <p><strong>✓</strong> You control your data completely</p>
+            </div>
+            
+            <div class="recommendation-card">
+                <h3>⚕️ Medical Safety</h3>
+                <p><strong>✓</strong> Built-in safety screening</p>
+                <p><strong>✓</strong> Medical consultation triggers</p>
+                <p><strong>✓</strong> Drug interaction checking</p>
+                <p><strong>✓</strong> Evidence-based recommendations only</p>
+            </div>
+            
+            <div class="checkbox-group">
+                <div class="checkbox-item">
+                    <input type="checkbox" id="consent1" required>
+                    <span>I understand my data is processed securely in the EU and I can delete it anytime</span>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="consent2" required>
+                    <span>I agree to receive personalized health guidance based on current scientific evidence</span>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="consent3">
+                    <span>I consent to anonymized data use for improving health outcomes (optional)</span>
+                </div>
+            </div>
+            
+            <button class="btn" onclick="nextStage()">Continue Safely</button>
+        </div>
+
+        <!-- Stage 4: Data Collection (Dynamic based on path) -->
+        <div class="stage" id="stage4">
+            <div class="health-navigator">📋</div>
+            <h1 id="dataTitle">Tell Me About Your Health</h1>
+            <p id="dataDescription">This helps me create the most relevant recommendations for you</p>
+            
+            <div id="dataContent">
+                <!-- Content will be populated based on selected path -->
+            </div>
+            
+            <button class="btn" onclick="nextStage()">Analyze My Profile</button>
+        </div>
+
+        <!-- Stage 5: Safety Screening -->
+        <div class="stage" id="stage5">
+            <div class="health-navigator">⚕️</div>
+            <h1>Quick Safety Check</h1>
+            <p>This ensures I can recommend safely and in compliance with medical regulations</p>
+            
+            <div class="input-group">
+                <label>Do you have any of these conditions? (helps me adjust dosages safely)</label>
+                <div class="checkbox-group">
+                    <div class="safety-check-item">
+                        <input type="checkbox" value="heart" id="safety1" onchange="handleSafetySelection('conditions', this)">
+                        <span>Heart condition or taking heart medications</span>
+                    </div>
+                    <div class="safety-check-item">
+                        <input type="checkbox" value="kidney" id="safety2" onchange="handleSafetySelection('conditions', this)">
+                        <span>Kidney disease or history of kidney stones</span>
+                    </div>
+                    <div class="safety-check-item">
+                        <input type="checkbox" value="diabetes" id="safety3" onchange="handleSafetySelection('conditions', this)">
+                        <span>Diabetes or taking diabetes medications</span>
+                    </div>
+                    <div class="safety-check-item">
+                        <input type="checkbox" value="blood_thinners" id="safety4" onchange="handleSafetySelection('conditions', this)">
+                        <span>Taking blood thinners (warfarin, etc.)</span>
+                    </div>
+                    <div class="safety-check-item">
+                        <input type="checkbox" value="pregnancy" id="safety5" onchange="handleSafetySelection('conditions', this)">
+                        <span>Currently pregnant or trying to conceive</span>
+                    </div>
+                    <div class="safety-check-item">
+                        <input type="checkbox" value="none" id="safety6" onchange="handleSafetySelection('conditions', this)">
+                        <span><strong>None of the above</strong></span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="input-group">
+                <label>Any concerning symptoms recently?</label>
+                <div class="checkbox-group">
+                    <div class="safety-check-item">
+                        <input type="checkbox" value="weight_loss" id="symptom1" onchange="handleSafetySelection('symptoms', this)">
+                        <span>Unexplained weight loss >5kg in 3 months</span>
+                    </div>
+                    <div class="safety-check-item">
+                        <input type="checkbox" value="chest_pain" id="symptom2" onchange="handleSafetySelection('symptoms', this)">
+                        <span>Chest pain or heart palpitations with fatigue</span>
+                    </div>
+                    <div class="safety-check-item">
+                        <input type="checkbox" value="severe_mood" id="symptom3" onchange="handleSafetySelection('symptoms', this)">
+                        <span>Severe mood changes with fatigue</span>
+                    </div>
+                    <div class="safety-check-item">
+                        <input type="checkbox" value="fainting" id="symptom4" onchange="handleSafetySelection('symptoms', this)">
+                        <span>Fainting or severe dizziness</span>
+                    </div>
+                    <div class="safety-check-item">
+                        <input type="checkbox" value="none_symptoms" id="symptom5" onchange="handleSafetySelection('symptoms', this)">
+                        <span><strong>None of these apply</strong></span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="loading" id="loadingSafety">
+                <div class="spinner"></div>
+                <p>Analyzing your safety profile and creating personalized recommendations...</p>
+            </div>
+            
+            <button class="btn" onclick="processSafetyScreen()">Create My Protocol</button>
+        </div>
+
+        <!-- Stage 6: Behavioral Profiling -->
+        <div class="stage" id="stage6">
+            <div class="health-navigator">🧠</div>
+            <h1>Your Success Style</h1>
+            <p>Let me understand how YOUR mind works best - this personalizes every interaction</p>
+            
+            <div class="input-group">
+                <label>When you've successfully made health changes before, what worked best?</label>
+                <div class="checkbox-group">
+                    <div class="checkbox-item">
+                        <input type="radio" name="success_style" value="detailed_plan" id="success1">
+                        <span>Having a detailed plan to follow step-by-step</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="radio" name="success_style" value="understand_why" id="success2">
+                        <span>Understanding the 'why' behind each recommendation</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="radio" name="success_style" value="regular_checkins" id="success3">
+                        <span>Someone checking in on my progress regularly</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="radio" name="success_style" value="quick_wins" id="success4">
+                        <span>Seeing quick wins that motivated me to continue</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="radio" name="success_style" value="flexibility" id="success5">
+                        <span>Having flexibility to adapt the approach as I go</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="input-group">
+                <label>Your ideal daily support would be:</label>
+                <div class="checkbox-group">
+                    <div class="checkbox-item">
+                        <input type="radio" name="support_style" value="simple_reminders" id="support1">
+                        <span>Simple, actionable reminders with minimal explanation</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="radio" name="support_style" value="educational" id="support2">
+                        <span>Educational insights that help me understand my body</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="radio" name="support_style" value="motivational" id="support3">
+                        <span>Motivational messages that keep me focused on goals</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="radio" name="support_style" value="flexible_guidance" id="support4">
+                        <span>Flexible guidance that adapts to my daily reality</span>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="radio" name="support_style" value="progress_tracking" id="support5">
+                        <span>Progress tracking with celebration of small wins</span>
+                    </div>
+                </div>
+            </div>
+            
+            <button class="btn" onclick="generateProfile()">Reveal My Success Profile</button>
+        </div>
+
+        <!-- Stage 7: Profile Results & Recommendations -->
+        <div class="stage" id="stage7">
+            <div class="health-navigator">🎯</div>
+            <div id="profileResults">
+                <!-- Will be populated by JavaScript -->
+            </div>
+            
+            <div id="recommendationResults">
+                <!-- Will be populated by JavaScript -->
+            </div>
+            
+            <div class="btn-group">
+                <button class="btn" onclick="nextStage()">Perfect! Show Me My Plan</button>
+                <button class="btn btn-secondary" onclick="showAlternativeProfiles()">See Other Profiles</button>
+            </div>
+        </div>
+
+        <!-- Stage 8: Personalized Protocol -->
+        <div class="stage" id="stage8">
+            <div class="health-navigator">🏗️</div>
+            <h1 id="protocolTitle">Your Personalized Protocol</h1>
+            <p id="protocolSubtitle">Based on your profile and safety screening</p>
+            
+            <div id="protocolContent">
+                <!-- Will be populated by JavaScript -->
+            </div>
+            
+            <div class="whatsapp-preview">
+                <h3>📱 How I'll Support You Daily</h3>
+                <div id="whatsappMessages">
+                    <!-- Will be populated based on profile -->
+                </div>
+            </div>
+            
+            <button class="btn" onclick="nextStage()">Start My Tiny Wins Journey</button>
+        </div>
+
+        <!-- Stage 9: Implementation & Next Steps -->
+        <div class="stage" id="stage9">
+            <div class="health-navigator">🚀</div>
+            <h1>Your Journey Begins Now!</h1>
+            <p>You're set up for success with personalized support that adapts to your unique needs</p>
+            
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-value">85%</div>
+                    <div class="metric-label">Success Rate for Your Profile</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">7-14</div>
+                    <div class="metric-label">Days to First Energy Improvement</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">60%</div>
+                    <div class="metric-label">Sleep Quality Improvement</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">3-5kg</div>
+                    <div class="metric-label">Average Sustainable Change</div>
+                </div>
+            </div>
+            
+            <div class="recommendation-card">
+                <h3>🎯 Your Next Steps</h3>
+                <p><strong>Tonight:</strong> Start your sleep foundation habit</p>
+                <p><strong>Tomorrow:</strong> Receive your first personalized check-in</p>
+                <p><strong>Week 1:</strong> Build consistency with gentle support</p>
+                <p><strong>Month 1:</strong> Experience the transformation everyone talks about</p>
+            </div>
+            
+            <div class="demo-notice">
+                <strong>💡 Demo Complete!</strong> In the real system, you'd now connect to WhatsApp for daily support, access your health dashboard, and begin your personalized supplement protocol with ongoing AI guidance.
+            </div>
+            
+            <div class="btn-group">
+                <button class="btn" onclick="restartDemo()">Try Different Path</button>
+                <button class="btn btn-secondary" onclick="showPricing()">View Pricing</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentStage = 1;
+        let userProfile = {
+            concern: '',
+            impact: '',
+            path: '',
+            dataType: '',
+            safetyFlags: [],
+            behavioralProfile: '',
+            energyPatterns: {},
+            hasSafetyRisk: false
+        };
+
+        const behavioralProfiles = {
+            science_seeker: {
+                badge: '🔬',
+                title: 'THE SCIENCE SEEKER',
+                traits: ['Evidence-driven', 'Data-loving', 'Detail-focused', 'Research-motivated'],
+                description: 'You thrive when you understand WHY something works and prefer detailed explanations over simple instructions.',
+                whatsappStyle: 'Educational insights with research citations and biological mechanisms',
+                successRate: '92%'
+            },
+            steady_builder: {
+                badge: '🏗️',
+                title: 'THE STEADY BUILDER',
+                traits: ['Patient', 'Consistent', 'Gentle', 'Sustainable'],
+                description: 'You prefer gradual changes and appreciate encouragement and gentle accountability.',
+                whatsappStyle: 'Gentle encouragement with celebration of small wins',
+                successRate: '88%'
+            },
+            quick_wins: {
+                badge: '⚡',
+                title: 'THE QUICK WINS SEEKER',
+                traits: ['Results-driven', 'Motivated', 'Achievement-focused', 'Fast-paced'],
+                description: 'You\'re motivated by visible progress and like to see results quickly.',
+                whatsappStyle: 'Achievement-focused with rapid feedback and celebration',
+                successRate: '85%'
+            },
+            flexible_adapter: {
+                badge: '🌊',
+                title: 'THE FLEXIBLE ADAPTER',
+                traits: ['Adaptable', 'Realistic', 'Life-responsive', 'Practical'],
+                description: 'You need approaches that fit your changing schedule and real-life demands.',
+                whatsappStyle: 'Adaptive guidance that adjusts to your daily reality',
+                successRate: '87%'
+            },
+            systematic_follower: {
+                badge: '📋',
+                title: 'THE SYSTEMATIC FOLLOWER',
+                traits: ['Structured', 'Organized', 'Plan-focused', 'Methodical'],
+                description: 'You love clear plans and systematic approaches with detailed instructions.',
+                whatsappStyle: 'Structured daily plans with clear step-by-step guidance',
+                successRate: '90%'
+            }
+        };
+
+        function updateProgress() {
+            const progress = (currentStage / 9) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+        }
+
+        function nextStage() {
+            if (!validateCurrentStage()) {
+                return;
+            }
+            
+            document.getElementById(`stage${currentStage}`).classList.remove('active');
+            currentStage++;
+            document.getElementById(`stage${currentStage}`).classList.add('active');
+            updateProgress();
+            document.querySelector('.container').scrollTop = 0;
+
+            // Populate content for certain stages
+            if (currentStage === 4) {
+                populateDataCollection();
+            }
+        }
+
+        function validateCurrentStage() {
+            switch(currentStage) {
+                case 1:
+                    const concern = document.getElementById('concern').value.trim();
+                    const impact = document.querySelector('input[name="impact"]:checked');
+                    if (!concern || !impact) {
+                        alert('Please share your concern and rate its impact to continue');
+                        return false;
+                    }
+                    userProfile.concern = concern;
+                    userProfile.impact = impact.value;
+                    return true;
+                    
+                case 2:
+                    if (!userProfile.path) {
+                        alert('Please select your preferred journey path');
+                        return false;
+                    }
+                    return true;
+                    
+                case 3:
+                    const consent1 = document.getElementById('consent1').checked;
+                    const consent2 = document.getElementById('consent2').checked;
+                    if (!consent1 || !consent2) {
+                        alert('Please accept the required consent items to continue');
+                        return false;
+                    }
+                    return true;
+                    
+                case 4:
+                    // Data collection validation handled separately
+                    return true;
+                    
+                case 5:
+                    // Safety screening handled by processSafetyScreen()
+                    return true;
+                    
+                case 6:
+                    const successStyle = document.querySelector('input[name="success_style"]:checked');
+                    const supportStyle = document.querySelector('input[name="support_style"]:checked');
+                    if (!successStyle || !supportStyle) {
+                        alert('Please complete the behavioral assessment');
+                        return false;
+                    }
+                    return true;
+                    
+                default:
+                    return true;
+            }
+        }
+
+        function selectPath(pathType) {
+            userProfile.path = pathType;
+            
+            // Update visual selection
+            document.querySelectorAll('.path-option').forEach(el => el.classList.remove('selected'));
+            document.getElementById(pathType + 'Path').classList.add('selected');
+            
+            // Show path description
+            const descriptions = {
+                data: `
+                    <div class="recommendation-card">
+                        <h3>📊 Data-Driven Approach</h3>
+                        <p>Perfect! I'll help you understand what your lab results, sleep data, and health metrics are telling you. We'll create a protocol based on your actual biomarkers and health data.</p>
+                        <p><strong>What you'll get:</strong> Personalized supplement protocols, optimal ranges for your age/stage, and data-driven progress tracking.</p>
+                    </div>
+                `,
+                wisdom: `
+                    <div class="recommendation-card">
+                        <h3>🧠 Body Wisdom Approach</h3>
+                        <p>Excellent choice! Your body gives constant signals about your energy and health. I'll help you decode these patterns and create an effective protocol based on how you feel.</p>
+                        <p><strong>What you'll get:</strong> Symptom-based personalization, energy pattern analysis, and body-responsive adjustments.</p>
+                    </div>
+                `
+            };
+            
+            document.getElementById('pathDescription').innerHTML = descriptions[pathType];
+            document.getElementById('continueBtn').style.display = 'block';
+        }
+
+        function populateDataCollection() {
+            const isDataPath = userProfile.path === 'data';
+            
+            if (isDataPath) {
+                document.getElementById('dataTitle').textContent = 'Your Health Data';
+                document.getElementById('dataDescription').textContent = 'Share what you have - every piece helps create a more personalized protocol';
+                
+                document.getElementById('dataContent').innerHTML = `
+                    <div class="input-group">
+                        <label>Recent lab results (if available):</label>
+                        <div class="checkbox-group">
+                            <div class="lab-input-row">
+                                <input type="checkbox" value="vitamin_d">
+                                <span>Vitamin D:</span>
+                                <input type="number" placeholder="nmol/L">
+                            </div>
+                            <div class="lab-input-row">
+                                <input type="checkbox" value="b12">
+                                <span>B12:</span>
+                                <input type="number" placeholder="pmol/L">
+                            </div>
+                            <div class="lab-input-row">
+                                <input type="checkbox" value="glucose">
+                                <span>Fasting Glucose:</span>
+                                <input type="number" placeholder="mmol/L">
+                            </div>
+                            <div class="lab-input-row">
+                                <input type="checkbox" value="thyroid">
+                                <span>TSH:</span>
+                                <input type="number" placeholder="mIU/L">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>Sleep tracking data:</label>
+                        <input type="number" placeholder="Average hours per night" min="4" max="12" step="0.5">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>Daily steps (if tracked):</label>
+                        <input type="number" placeholder="Average daily steps">
+                    </div>
+                `;
+            } else {
+                document.getElementById('dataTitle').textContent = 'Your Energy Patterns';
+                document.getElementById('dataDescription').textContent = 'Your daily experience tells me everything I need to know';
+                
+                document.getElementById('dataContent').innerHTML = `
+                    <div class="input-group">
+                        <label>Morning energy (first 2 hours awake):</label>
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="radio" name="morning_energy" value="alert">
+                                <span>Wake up refreshed and alert</span>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="radio" name="morning_energy" value="slow_start">
+                                <span>Need 20-30 minutes to feel awake</span>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="radio" name="morning_energy" value="struggle">
+                                <span>Struggle to get going even with coffee</span>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="radio" name="morning_energy" value="groggy">
+                                <span>Feel groggy most of the morning</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>Afternoon energy (1-4 PM):</label>
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="radio" name="afternoon_energy" value="steady">
+                                <span>Maintain steady energy</span>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="radio" name="afternoon_energy" value="mild_dip">
+                                <span>Feel a mild dip but can push through</span>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="radio" name="afternoon_energy" value="crash">
+                                <span>Experience significant energy crash</span>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="radio" name="afternoon_energy" value="need_caffeine">
+                                <span>Need caffeine or food to continue</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>Sleep quality:</label>
+                        <div class="scale-group">
+                            <div class="scale-option">
+                                <input type="radio" name="sleep_quality" value="1">
+                                <label for="sleep_quality_1">Very poor</label>
+                            </div>
+                            <div class="scale-option">
+                                <input type="radio" name="sleep_quality" value="2">
+                                <label for="sleep_quality_2">Poor</label>
+                            </div>
+                            <div class="scale-option">
+                                <input type="radio" name="sleep_quality" value="3">
+                                <label for="sleep_quality_3">Fair</label>
+                            </div>
+                            <div class="scale-option">
+                                <input type="radio" name="sleep_quality" value="4">
+                                <label for="sleep_quality_4">Good</label>
+                            </div>
+                            <div class="scale-option">
+                                <input type="radio" name="sleep_quality" value="5">
+                                <label for="sleep_quality_5">Excellent</label>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function handleSafetySelection(category, checkbox) {
+            if (category === 'conditions' && checkbox.value === 'none') {
+                if (checkbox.checked) {
+                    // Uncheck all other condition checkboxes
+                    document.querySelectorAll('#stage5 input[type="checkbox"][value!="none"]').forEach(cb => {
+                        if (cb.id.startsWith('safety')) {
+                            cb.checked = false;
+                        }
+                    });
+                }
+            } else if (category === 'conditions' && checkbox.value !== 'none') {
+                // Uncheck "none" if any condition is selected
+                document.getElementById('safety6').checked = false;
+            }
+            
+            if (category === 'symptoms' && checkbox.value === 'none_symptoms') {
+                if (checkbox.checked) {
+                    // Uncheck all other symptom checkboxes
+                    document.querySelectorAll('#stage5 input[type="checkbox"][value!="none_symptoms"]').forEach(cb => {
+                        if (cb.id.startsWith('symptom')) {
+                            cb.checked = false;
+                        }
+                    });
+                }
+            } else if (category === 'symptoms' && checkbox.value !== 'none_symptoms') {
+                // Uncheck "none" if any symptom is selected
+                document.getElementById('symptom5').checked = false;
+            }
+        }
+
+        function processSafetyScreen() {
+            document.querySelector('#stage5 .btn').style.display = 'none';
+            document.getElementById('loadingSafety').style.display = 'block';
+            
+            // Check for safety flags
+            const safetyFlags = [];
+            const checkboxes = document.querySelectorAll('#stage5 input[type="checkbox"]:checked');
+            checkboxes.forEach(cb => {
+                if (cb.value !== 'none' && cb.value !== 'none_symptoms') {
+                    safetyFlags.push(cb.value);
+                }
+            });
+            
+            userProfile.safetyFlags = safetyFlags;
+            userProfile.hasSafetyRisk = safetyFlags.length > 0;
+            
+            setTimeout(() => {
+                if (userProfile.hasSafetyRisk) {
+                    showSafetyResponse();
+                } else {
+                    nextStage();
+                }
+            }, 2000);
+        }
+
+        function showSafetyResponse() {
+            document.getElementById('loadingSafety').style.display = 'none';
+            
+            const safetyResponse = `
+                <div class="safety-alert">
+                    <h3>⚠️ Important Health Guidance</h3>
+                    <p>Based on your responses, I recommend discussing your fatigue with your healthcare provider before starting any supplement protocol.</p>
+                    
+                    <p><strong>Specifically mention to your doctor:</strong></p>
+                    <p>• Persistent fatigue affecting daily life for ${userProfile.impact >= 4 ? 'significant time' : 'some time'}</p>
+                    <p>• Interest in supplement support for energy</p>
+                    <p>• Request for blood work to check thyroid, B12, vitamin D, and iron</p>
+                    
+                    <div style="background: #f0f8ff; padding: 12px; border-radius: 8px; margin: 10px 0;">
+                        <strong>💬 Doctor Discussion Template:</strong><br>
+                        <em>"I've been experiencing significant fatigue that's affecting my work and daily life. I've tried various approaches without improvement. Should I have blood work to check thyroid, B12, vitamin D, and iron? Are there any medical causes we should rule out? Is it safe for me to try magnesium and B-complex supplements?"</em>
+                    </div>
+                    
+                    <p><strong>What I can help with safely right now:</strong></p>
+                    <p>• Sleep hygiene techniques</p>
+                    <p>• Gentle stress management approaches</p>
+                    <p>• Nutrition timing strategies</p>
+                </div>
+                
+                <button class="btn" onclick="nextStage()">Continue with Safe Recommendations</button>
+            `;
+            
+            document.getElementById('stage5').innerHTML = `
+                <div class="health-navigator">⚕️</div>
+                <h1>Safety First</h1>
+                ${safetyResponse}
+            `;
+        }
+
+        function generateProfile() {
+            const successStyle = document.querySelector('input[name="success_style"]:checked').value;
+            const supportStyle = document.querySelector('input[name="support_style"]:checked').value;
+            
+            // Determine behavioral profile based on responses
+            let profileType = '';
+            if (successStyle === 'understand_why' || supportStyle === 'educational') {
+                profileType = 'science_seeker';
+            } else if (successStyle === 'regular_checkins' || supportStyle === 'progress_tracking') {
+                profileType = 'steady_builder';
+            } else if (successStyle === 'quick_wins' || supportStyle === 'motivational') {
+                profileType = 'quick_wins';
+            } else if (successStyle === 'flexibility' || supportStyle === 'flexible_guidance') {
+                profileType = 'flexible_adapter';
+            } else {
+                profileType = 'systematic_follower';
+            }
+            
+            userProfile.behavioralProfile = profileType;
+            
+            setTimeout(() => {
+                displayProfile(profileType);
+                nextStage();
+            }, 1000);
+        }
+
+        function displayProfile(profileType) {
+            const profile = behavioralProfiles[profileType];
+            
+            const profileHTML = `
+                <div class="behavioral-profile">
+                    <div class="profile-header">
+                        <div class="profile-badge">${profile.badge}</div>
+                        <div class="profile-title">${profile.title}</div>
+                    </div>
+                    <div class="profile-traits">
+                        ${profile.traits.map(trait => `<span class="trait-badge">${trait}</span>`).join('')}
+                    </div>
+                    <p style="margin: 10px 0;">${profile.description}</p>
+                    <div style="background: rgba(74, 144, 164, 0.1); padding: 12px; border-radius: 8px; margin: 10px 0;">
+                        <strong>YOUR PERSONALIZED SUPPORT STYLE:</strong><br>
+                        ${profile.whatsappStyle}
+                    </div>
+                    <div style="text-align: center; margin-top: 15px;">
+                        <div class="metric-value">${profile.successRate}</div>
+                        <div class="metric-label">Success Rate for Your Profile</div>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('profileResults').innerHTML = profileHTML;
+            
+            // Generate personalized recommendations
+            generatePersonalizedRecommendations(profileType);
+        }
+
+        function generatePersonalizedRecommendations(profileType) {
+            const profile = behavioralProfiles[profileType];
+            const isHighImpact = parseInt(userProfile.impact) >= 4;
+            const hasSafetyRisk = userProfile.hasSafetyRisk;
+            
+            let insight = '';
+            if (isHighImpact) {
+                insight = "I can see this is really affecting your daily life, and I want you to know that what you're experiencing is valid and addressable.";
+            } else {
+                insight = "I'm glad you're being proactive about this before it becomes more challenging.";
+            }
+            
+            let recommendationHTML = '';
+            
+            if (hasSafetyRisk) {
+                recommendationHTML = `
+                    <div class="recommendation-card">
+                        <h3>🛡️ Your Safe Starting Protocol</h3>
+                        <p>${insight}</p>
+                        <p><strong>Sleep Foundation:</strong> Sleep hygiene optimization</p>
+                        <p><strong>Stress Support:</strong> Gentle breathing techniques</p>
+                        <p><strong>Energy Timing:</strong> Meal timing for stable blood sugar</p>
+                        <div style="background: #f0f8ff; padding: 12px; border-radius: 8px; margin: 10px 0;">
+                            <strong>📋 After your doctor visit:</strong> I'll create a complete supplement protocol tailored to your safety needs and behavioral profile.
+                        </div>
+                    </div>
+                `;
+            } else {
+                recommendationHTML = `
+                    <div class="recommendation-card">
+                        <h3>💊 Your Foundation Protocol</h3>
+                        <p>${insight}</p>
+                        
+                        <p><strong>Primary Recommendation:</strong> Magnesium Glycinate 200mg</p>
+                        <p><strong>When:</strong> 30 minutes before bed</p>
+                        <p><strong>Why this form:</strong> Highly bioavailable, gentle on stomach, supports sleep and stress</p>
+                        
+                        <div style="margin: 15px 0;">
+                            <strong>Evidence Strength:</strong>
+                            <div class="evidence-bar">
+                                <div class="evidence-fill" style="width: 85%"></div>
+                            </div>
+                            <small>Based on multiple clinical studies</small>
+                        </div>
+                        
+                        ${profileType === 'science_seeker' ? `
+                            <div style="background: #e6fffa; padding: 12px; border-radius: 8px; margin: 10px 0;">
+                                <strong>🎓 The Science:</strong> Magnesium regulates GABA neurotransmitter function and supports healthy cortisol rhythm. Studies show 200-400mg improves sleep latency by 15-20% within 5-7 days (Abbasi et al., 2012).
+                            </div>
+                        ` : ''}
+                        
+                        <div style="background: #fff5f5; padding: 12px; border-radius: 8px; margin: 10px 0;">
+                            <strong>🎯 Implementation Tip:</strong> Place the bottle next to your toothbrush so you remember to take it as part of your bedtime routine.
+                        </div>
+                    </div>
+                `;
+            }
+            
+            document.getElementById('recommendationResults').innerHTML = recommendationHTML;
+        }
+
+        function showAlternativeProfiles() {
+            let alternativeHTML = '<h2>Other Behavioral Profiles</h2>\n\n';
+            
+            Object.entries(behavioralProfiles).forEach(([key, profile]) => {
+                if (key !== userProfile.behavioralProfile) {
+                    alternativeHTML += `${profile.badge} ${profile.title}\n`;
+                    alternativeHTML += `${profile.description}\n`;
+                    alternativeHTML += `Success rate: ${profile.successRate}\n\n`;
+                }
+            });
+            
+            alert(alternativeHTML);
+        }
+
+        function restartDemo() {
+            document.querySelector('.stage.active').classList.remove('active');
+            currentStage = 1;
+            document.getElementById('stage1').classList.add('active');
+            updateProgress();
+            
+            // Reset user profile
+            userProfile = {
+                concern: '',
+                impact: '',
+                path: '',
+                dataType: '',
+                safetyFlags: [],
+                behavioralProfile: '',
+                energyPatterns: {},
+                hasSafetyRisk: false
+            };
+            
+            // Reset form inputs
+            document.querySelectorAll('input, textarea, select').forEach(element => {
+                if (element.type === 'checkbox' || element.type === 'radio') {
+                    element.checked = false;
+                } else {
+                    element.value = '';
+                }
+            });
+            
+            // Reset UI elements
+            document.querySelectorAll('.path-option').forEach(el => el.classList.remove('selected'));
+            document.getElementById('pathDescription').innerHTML = '';
+            document.getElementById('continueBtn').style.display = 'none';
+            document.getElementById('loadingSafety').style.display = 'none';
+            document.querySelector('.container').scrollTop = 0;
+        }
+
+        function showPricing() {
+            alert(`🚀 Health Navigator Pricing:
+
+Path 1 - Quick Start:
+• Personalized assessment: Free
+• WhatsApp support: £9.99/month
+• Recommended supplements: £25-45/month
+
+Path 2 - Complete Transformation:
+• Full health analysis: £19.99
+• Comprehensive protocols: £14.99/month
+• Advanced supplement protocols: £75-120/month
+
+Path 3 - 3-Month Deep Dive:
+• Complete programme: £299
+• Includes biological age testing
+• Full supplement protocols included
+• 1-on-1 expert consultations
+
+Ready to transform your energy? 
+Contact Julia & Lars at Happy Longevity!`);
+        }
+
+        // Update stage 8 content when reached
+        function populateStage8() {
+            const profile = behavioralProfiles[userProfile.behavioralProfile];
+            const isHighImpact = parseInt(userProfile.impact) >= 4;
+            
+            if (userProfile.hasSafetyRisk) {
+                document.getElementById('protocolTitle').textContent = 'Your Safe Foundation Protocol';
+                document.getElementById('protocolSubtitle').textContent = 'Starting with lifestyle approaches while you consult your healthcare provider';
+                
+                document.getElementById('protocolContent').innerHTML = `
+                    <div class="phase-timeline">
+                        <div class="phase-item">
+                            <div class="phase-number">1</div>
+                            <h4>🌙 Sleep Foundation</h4>
+                            <p>Establish consistent sleep hygiene and timing</p>
+                        </div>
+                        <div class="phase-item">
+                            <div class="phase-number">2</div>
+                            <h4>🧘‍♀️ Stress Regulation</h4>
+                            <p>Gentle breathing techniques and stress management</p>
+                        </div>
+                        <div class="phase-item">
+                            <div class="phase-number">3</div>
+                            <h4>🍽️ Energy Timing</h4>
+                            <p>Optimize meal timing for stable blood sugar</p>
+                        </div>
+                    </div>
+                `;
+            } else {
+                document.getElementById('protocolTitle').textContent = 'Your Foundational Habits Protocol';
+                document.getElementById('protocolSubtitle').textContent = 'Building tiny wins that create massive transformation';
+                
+                document.getElementById('protocolContent').innerHTML = `
+                    <div class="tiny-wins">
+                        <h4>🏗️ Week 1: Sleep Foundation Builder</h4>
+                        <p><strong>Tiny Win:</strong> Place magnesium next to toothbrush → take when brushing teeth → dim one light</p>
+                        <p><strong>Expected:</strong> Falling asleep easier by day 3-5</p>
+                    </div>
+                    
+                    <div class="tiny-wins">
+                        <h4>⚡ Week 2: Energy Foundation Builder</h4>
+                        <p><strong>Tiny Win:</strong> Add protein to breakfast → within 1 hour of waking</p>
+                        <p><strong>Expected:</strong> More stable morning energy</p>
+                    </div>
+                    
+                    <div class="tiny-wins">
+                        <h4>🎯 Week 3-4: Optimization Master</h4>
+                        <p><strong>Tiny Win:</strong> Consistent routines → stress regulation technique</p>
+                        <p><strong>Expected:</strong> Sustained energy without crashes</p>
+                    </div>
+                `;
+            }
+            
+            // Populate WhatsApp messages based on profile
+            const messages = getProfileMessages(userProfile.behavioralProfile, userProfile.hasSafetyRisk);
+            document.getElementById('whatsappMessages').innerHTML = messages;
+        }
+
+        function getProfileMessages(profileType, hasSafetyRisk) {
+            if (hasSafetyRisk) {
+                return `
+                    <div class="whatsapp-message">Good morning! How did you sleep? Let's focus on building your sleep foundation with simple techniques.</div>
+                    <div class="whatsapp-message">Gentle reminder: Try the 4-7-8 breathing technique before bed tonight.</div>
+                    <div class="whatsapp-message">How are you feeling today? Remember, we're building slowly and safely.</div>
+                `;
+            }
+            
+            const profileMessages = {
+                science_seeker: `
+                    <div class="whatsapp-message">Good morning! How did you sleep? Your magnesium supports GABA function - you should notice sleep latency improving by 15-20% within 5-7 days.</div>
+                    <div class="whatsapp-message">Week 2 update: Sleep consistency is building new neural pathways. Ready to add B-complex for mitochondrial ATP production?</div>
+                    <div class="whatsapp-message">Research insight: Your 40% sleep improvement aligns perfectly with studies on cortisol rhythm normalization!</div>
+                `,
+                steady_builder: `
+                    <div class="whatsapp-message">Good morning, beautiful! 🌅 How did you sleep? Every small step counts - you're building something wonderful.</div>
+                    <div class="whatsapp-message">Gentle reminder: Take your magnesium tonight. You're creating a beautiful foundation for your health.</div>
+                    <div class="whatsapp-message">I'm so proud of your gentle consistency! Ready to add one more small foundation piece?</div>
+                `,
+                quick_wins: `
+                    <div class="whatsapp-message">🔥 Good morning, energy warrior! How did you sleep? Day 3 of your protocol = energy boost incoming!</div>
+                    <div class="whatsapp-message">🏆 ACHIEVEMENT UNLOCKED! You're building the foundation for sustained energy. Ready for your next win?</div>
+                    <div class="whatsapp-message">🚀 Week 2 power-up time! Your sleep foundation is solid - let's stack your energy accelerator!</div>
+                `,
+                flexible_adapter: `
+                    <div class="whatsapp-message">Morning! How did you sleep? No pressure if you missed magnesium - let's adapt and find what works for YOUR schedule.</div>
+                    <div class="whatsapp-message">Life happens! How can we adjust your protocol to fit your reality today?</div>
+                    <div class="whatsapp-message">Loving your flexible approach! What tiny win feels doable for you today?</div>
+                `,
+                systematic_follower: `
+                    <div class="whatsapp-message">Good morning! Step 1 complete: How did you sleep? Today's checklist: ✓ Morning protein ✓ Magnesium tonight</div>
+                    <div class="whatsapp-message">Week 1 Protocol Status: Sleep foundation in progress. Week 2 Addition: B-complex with breakfast. Clear?</div>
+                    <div class="whatsapp-message">System check: You're 85% consistent with Phase 1. Ready for Phase 2 implementation?</div>
+                `
+            };
+            
+            return profileMessages[profileType] || profileMessages.science_seeker;
+        }
+
+        // Monitor stage changes to populate content
+        const originalNextStage = nextStage;
+        nextStage = function() {
+            originalNextStage.call(this);
+            if (currentStage === 8) {
+                populateStage8();
+            }
+        };
+
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', function() {
+            updateProgress();
+        });
+    </script>
+</body>
+</html>
